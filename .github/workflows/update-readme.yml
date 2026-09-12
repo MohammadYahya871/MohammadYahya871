@@ -1,0 +1,36 @@
+name: Update Profile README
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs every day at midnight
+  workflow_dispatch: # Allows you to run it manually
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update Content
+        run: |
+          # Your logic here (e.g., pulling latest blog posts or stats)
+          echo "Last updated: $(date)" >> README.md
+
+      - name: Rewrite History and Force Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create a brand-new root commit containing the current repo state.
+          # This rewrites main to a single commit each run.
+          git checkout --orphan "rewrite-${GITHUB_RUN_ID}"
+          git add -A
+          git commit -m "Update profile README"
+          git push --force origin HEAD:main
